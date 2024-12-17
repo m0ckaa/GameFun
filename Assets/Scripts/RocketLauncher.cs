@@ -1,14 +1,14 @@
 using UnityEngine;
 using TMPro;
 
-public class Gun : MonoBehaviour
+public class RocketLauncher : MonoBehaviour
 {
-    [Header("Gun Properties")]
-    public float currentRange;
-    public float maxRange;
+    [Header("RL Properties")]
     public float fireRate;
     public float cooldownTimer = 0f;
-    public float damage;
+    public float force;
+    public Transform spawnPosition;
+    public GameObject rocketPrefab;
 
     [Header("Ammo/Reload Properties")]
     public Vector2Int ammo;
@@ -18,9 +18,9 @@ public class Gun : MonoBehaviour
 
     [Header("Reference to External Objects/Scripts")]
     public GameObject player;
-    private Interactalbe target;
     public TextMeshProUGUI ammoText;
     public TextMeshProUGUI reloadText;
+    public Transform camT;
 
     private void Start()
     {
@@ -32,14 +32,14 @@ public class Gun : MonoBehaviour
     {
         cooldownTimer += Time.deltaTime;
 
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             Fire();
         }
 
-        if(Input.GetKeyDown(KeyCode.R) && !isReloading)
+        if (Input.GetKeyDown(KeyCode.R) && !isReloading)
         {
-            if(ammo[0] != ammo[1])
+            if (ammo[0] != ammo[1])
             {
                 StartReload();
             }
@@ -59,21 +59,16 @@ public class Gun : MonoBehaviour
     {
         if (cooldownTimer >= fireRate)
         {
-            currentRange = GetCurrentRange();
             if (ammo[0] != 0 && !isReloading)
             {
                 ammo[0] -= 1;
                 cooldownTimer = 0f;
                 UpdateAmmoText();
-                GetComponent<GunMovement>()?.ApplyRecoil();
-                if (currentRange <= maxRange)
-                {
-                    target = GetTarget();
-                    if (target)
-                    {
-                        target.TakeDamage(damage);
-                    }
-                }
+                //GetComponent<RLMovement>()?.ApplyRecoil();
+
+                GameObject rocket = Instantiate(rocketPrefab, spawnPosition.position, Quaternion.identity);
+                rocket.GetComponent<Rigidbody>().AddForce(camT.forward * force, ForceMode.Impulse);
+
             }
         }
     }
@@ -83,12 +78,12 @@ public class Gun : MonoBehaviour
         isReloading = true;
         reloadTimer = reloadCooldown;
         reloadText.gameObject.SetActive(true);
-        GetComponent<GunMovement>()?.ApplyReloadMvmnt();
+        //GetComponent<RLMovement>()?.ApplyReloadMvmnt();
     }
 
     private void FinishReload()
     {
-        isReloading = false;    
+        isReloading = false;
         reloadTimer = 0f;
         ammo[0] = ammo[1];
         UpdateAmmoText();
@@ -100,13 +95,4 @@ public class Gun : MonoBehaviour
         ammoText.text = ammo[0] + " / " + ammo[1];
     }
 
-    private float GetCurrentRange()
-    {
-        return player.GetComponent<FPScontroller>().currentRange;
-    }
-
-    private Interactalbe GetTarget()
-    {
-        return player.GetComponent<FPScontroller>().lastFocusedObj;
-    }
 }

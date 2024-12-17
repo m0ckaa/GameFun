@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -24,9 +25,20 @@ public class FPScontroller : MonoBehaviour
     private float yaw;
     private float pitch;
 
+    public GameObject RL;  // Rocket Launcher
+    public GameObject Gun; // Gun
+    private bool isUsingRL = true;
+
     private void Start()
     {
         camT = transform.GetChild(0);
+
+        // Initialize weapons
+        if (RL != null && Gun != null)
+        {
+            RL.SetActive(true);  // Rocket Launcher starts active
+            Gun.SetActive(false); // Gun starts inactive
+        }
     }
 
     private void Update()
@@ -60,6 +72,35 @@ public class FPScontroller : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             jump = true;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            SwapWeapons();
+        }
+    }
+
+    private void SwapWeapons()
+    {
+        if (RL == null || Gun == null)
+        {
+            Debug.LogWarning("Weapons are not assigned in the inspector.");
+            return;
+        }
+
+        isUsingRL = !isUsingRL; // Toggle the active weapon state
+
+        if (isUsingRL)
+        {
+            RL.SetActive(true);
+            Gun.SetActive(false);
+            Debug.Log("Switched to Rocket Launcher.");
+        }
+        else
+        {
+            RL.SetActive(false);
+            Gun.SetActive(true);
+            Debug.Log("Switched to Gun.");
         }
     }
 
